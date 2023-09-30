@@ -3,6 +3,7 @@ import './style.css';
 
 const canvas: HTMLCanvasElement = document.querySelector('#board');
 const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+const font = 'Consolas, monospace';
 
 const box = 20;
 const width = box * 21;
@@ -32,7 +33,7 @@ const controller = (e: KeyboardEvent) => {
 };
 
 const clearCanvas = () => {
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = 'gray';
   ctx.fillRect(0, 0, width, height);
 };
 
@@ -50,6 +51,7 @@ const updateAppleCoordinates = () => {
   food.y = Math.floor(Math.random() * 20 + 1) * box;
 };
 
+// Spawn a apple randomly
 const spawnApple = () => {
   if (snake.some((elem) => elem.x === food.x && elem.y === food.y)) {
     updateAppleCoordinates();
@@ -60,6 +62,30 @@ const spawnApple = () => {
   }
 };
 
+// Show Score
+const showScore = () => {
+  ctx.fillStyle = 'white';
+  ctx.font = `${box}px ${font}`;
+  ctx.fillText(`Score: ${1}`, box / 4, box - 4);
+  ctx.fillText(`Record: ${1}`, width - box * 6.25, box - 4);
+};
+
+// Show Game Over
+const showGameOver = () => {
+  clearCanvas();
+  showScore();
+  ctx.fillText('Press r to restart', box * 5.5, height / 2 + box * 1.5);
+  ctx.font = `bold ${box * 3}px ${font}`;
+  ctx.fillText('Game Over!', box * 2.25, height / 2);
+};
+
+// Stop the game
+const stopGame = () => {
+  clearInterval(game);
+  setTimeout(showGameOver, 500);
+};
+
+// Looping to run the game
 const loop = () => {
   clearCanvas();
   spawnApple();
@@ -87,10 +113,14 @@ const loop = () => {
     snake.pop();
   }
 
-  snake.unshift({ x: px, y: py });
+  if (snake.some((elem) => px === elem.x && py === elem.y)) {
+    stopGame();
+  } else {
+    snake.unshift({ x: px, y: py });
+  }
 
   snake.forEach((elem, index) => {
-    ctx.fillStyle = index === 0 ? 'lime' : 'green';
+    ctx.fillStyle = index === 0 ? 'blue' : 'cyan';
     ctx.fillRect(elem.x, elem.y, box, box);
   });
 };
