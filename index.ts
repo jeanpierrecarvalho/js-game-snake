@@ -22,6 +22,8 @@ const food = {
 };
 
 let ms = 120;
+let score = 0;
+let record = 0;
 let dir = 'none';
 
 const controller = (e: KeyboardEvent) => {
@@ -66,8 +68,8 @@ const spawnApple = () => {
 const showScore = () => {
   ctx.fillStyle = 'white';
   ctx.font = `${box}px ${font}`;
-  ctx.fillText(`Score: ${1}`, box / 4, box - 4);
-  ctx.fillText(`Record: ${1}`, width - box * 6.25, box - 4);
+  ctx.fillText(`Score: ${score}`, box - 4, box);
+  ctx.fillText(`Record: ${record}`, width - box * 6.25, box);
 };
 
 // Show Game Over
@@ -88,6 +90,7 @@ const stopGame = () => {
 // Looping to run the game
 const loop = () => {
   clearCanvas();
+  showScore();
   spawnApple();
 
   // Setting the snake position
@@ -106,6 +109,13 @@ const loop = () => {
   if (py < 0) py = height;
 
   if (px === ax && py === ay) {
+    score += 10;
+
+    // Setting more 5% of difficult for each apple
+    if (score <= 250) {
+      ms = Math.round(ms * 0.95);
+    }
+
     updateAppleCoordinates();
     clearInterval(game);
     game = setInterval(loop, ms);
