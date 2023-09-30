@@ -79,6 +79,14 @@ const loop = () => {
   if (py >= height) py = 0;
   if (py < 0) py = height;
 
+  if (px === ax && py === ay) {
+    updateAppleCoordinates();
+    clearInterval(game);
+    game = setInterval(loop, ms);
+  } else {
+    snake.pop();
+  }
+
   snake.unshift({ x: px, y: py });
 
   snake.forEach((elem, index) => {
