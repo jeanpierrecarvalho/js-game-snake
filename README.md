@@ -1,3 +1,3 @@
 # js-game-snake
 
-[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/typescript-nqxjaa)
+[Edit on StackBlitz ⚡️](https://stackblitz.com/edit/jpcarvalho-game-snake)
