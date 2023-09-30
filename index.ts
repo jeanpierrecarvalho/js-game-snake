@@ -16,13 +16,14 @@ const initialPoint = {
 const snake = [initialPoint];
 
 let ms = 120;
+let dir = 'none';
 
-const controller = (event: KeyboardEvent) => {
-  if (event.key === 'r') console.log('Restarting the game...');
-  else if (event.key === 'ArrowRight') console.log('Arrow Right');
-  else if (event.key === 'ArrowLeft') console.log('Arrow Left');
-  else if (event.key === 'ArrowUp') console.log('Arrow Up');
-  else if (event.key === 'ArrowDown') console.log('Arrow Down');
+const controller = (e) => {
+  if (e.keyCode === 82) dir = 'none';
+  else if (e.keyCode === 37 && dir !== 'right') dir = 'left';
+  else if (e.keyCode === 38 && dir !== 'down') dir = 'up';
+  else if (e.keyCode === 39 && dir !== 'left') dir = 'right';
+  else if (e.keyCode === 40 && dir !== 'up') dir = 'down';
 };
 
 const clearCanvas = () => {
@@ -33,12 +34,23 @@ const clearCanvas = () => {
 const loop = () => {
   clearCanvas();
 
+  // Setting the snake position
   let [px, py] = [snake[0].x, snake[0].y];
 
-  px -= box;
+  if (dir === 'left') px -= box;
+  else if (dir === 'up') py -= box;
+  else if (dir === 'right') px += box;
+  else if (dir === 'down') py += box;
+
+  // Boundaries
+  if (px >= width) px = 0;
+  if (px < 0) px = width;
+  if (py >= height) py = 0;
+  if (py < 0) py = height;
 
   snake.unshift({ x: px, y: py });
 
+  // Drawing the snake
   snake.forEach((elem, index) => {
     ctx.fillStyle = index === 0 ? 'lime' : 'green';
     ctx.fillRect(elem.x, elem.y, box, box);
