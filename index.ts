@@ -1,159 +1,169 @@
-// Import stylesheets
 import './style.css';
 
-// Constants
-const canvas: HTMLCanvasElement | null = document.querySelector('#board');
-const ctx: CanvasRenderingContext2D | null = canvas?.getContext('2d');
-const font: string = 'Consolas, monospace';
-const box: number = 20;
-const width: number = box * 21;
-const height: number = box * 21;
+class SnakeGame {
+  canvas: HTMLCanvasElement | null;
+  ctx: CanvasRenderingContext2D | null;
+  font: string;
+  box: number;
+  width: number;
+  height: number;
+  snake: { x: number; y: number }[];
+  food: { x: number; y: number };
+  ms: number;
+  score: number;
+  record: number;
+  dir: string;
+  game: any;
 
-// Initial snake and food positions
-const initialPoint: { x: number; y: number } = {
-  x: (width - box) / 2,
-  y: (height - box) / 2,
-};
-
-const snake: { x: number; y: number }[] = [initialPoint];
-const food: { x: number; y: number } = {
-  x: Math.floor(Math.random() * 20 + 1) * box,
-  y: Math.floor(Math.random() * 20 + 1) * box,
-};
-
-// Game variables
-let ms: number = 120; // milliseconds between each frame
-let score: number = 0;
-let record: number = 0;
-let dir: string = 'none';
-
-// Controller function to handle keyboard input
-const controller = (e: KeyboardEvent): void => {
-  if (e.key === 'r') {
-    restart();
-  } else if (
-    e.key.startsWith('Arrow') &&
-    dir !== e.key.substring(5).toLowerCase()
-  ) {
-    dir = e.key.substring(5).toLowerCase();
+  constructor() {
+    this.canvas = document.querySelector('#board');
+    this.ctx = this.canvas?.getContext('2d');
+    this.font = 'Consolas, monospace';
+    this.box = 20;
+    this.width = this.box * 21;
+    this.height = this.box * 21;
+    this.snake = [
+      { x: (this.width - this.box) / 2, y: (this.height - this.box) / 2 },
+    ];
+    this.food = {
+      x: Math.floor(Math.random() * 20 + 1) * this.box,
+      y: Math.floor(Math.random() * 20 + 1) * this.box,
+    };
+    this.ms = 120;
+    this.score = 0;
+    this.record = 0;
+    this.dir = 'none';
+    this.game = setInterval(this.loop.bind(this), this.ms);
+    document.addEventListener('keydown', this.controller.bind(this));
   }
-};
 
-// Function to clear the canvas
-const clearCanvas = (): void => {
-  if (ctx) {
-    ctx.fillStyle = 'gray';
-    ctx.fillRect(0, 0, width, height);
+  clearCanvas(): void {
+    if (this.ctx) {
+      this.ctx.fillStyle = 'gray';
+      this.ctx.fillRect(0, 0, this.width, this.height);
+    }
   }
-};
 
-// Function to restart the game
-const restart = (): void => {
-  clearInterval(game);
-  snake[0] = initialPoint;
-  snake.length = 1;
-  ms = 120;
-  dir = 'none';
-  game = setInterval(loop, ms);
-};
+  updateAppleCoordinates(): void {
+    this.food.x = Math.floor(Math.random() * 20 + 1) * this.box;
+    this.food.y = Math.floor(Math.random() * 20 + 1) * this.box;
+  }
 
-// Function to update apple coordinates
-const updateAppleCoordinates = (): void => {
-  food.x = Math.floor(Math.random() * 20 + 1) * box;
-  food.y = Math.floor(Math.random() * 20 + 1) * box;
-};
+  spawnApple(): void {
+    if (this.ctx) {
+      if (
+        this.snake.some(
+          (elem) => elem.x === this.food.x && elem.y === this.food.y
+        )
+      ) {
+        this.updateAppleCoordinates();
+        this.spawnApple();
+      } else {
+        this.ctx.fillStyle = 'red';
+        this.ctx.fillRect(this.food.x, this.food.y, this.box, this.box);
+      }
+    }
+  }
 
-// Function to spawn an apple randomly
-const spawnApple = (): void => {
-  if (ctx) {
-    if (snake.some((elem) => elem.x === food.x && elem.y === food.y)) {
-      updateAppleCoordinates();
-      spawnApple();
+  showScore(): void {
+    if (this.ctx) {
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = `${this.box}px ${this.font}`;
+      this.ctx.fillText(`Score: ${this.score}`, this.box - 4, this.box);
+      this.ctx.fillText(
+        `Record: ${this.record}`,
+        this.width - this.box * 6.25,
+        this.box
+      );
+    }
+  }
+
+  showGameOver(): void {
+    this.clearCanvas();
+    this.showScore();
+    if (this.ctx) {
+      this.ctx.fillText(
+        'Press r to restart',
+        this.box * 5.5,
+        this.height / 2 + this.box * 1.5
+      );
+      this.ctx.font = `bold ${this.box * 3}px ${this.font}`;
+      this.ctx.fillText('Game Over!', this.box * 2.25, this.height / 2);
+    }
+  }
+
+  stopGame(): void {
+    clearInterval(this.game);
+    setTimeout(this.showGameOver.bind(this), 500);
+  }
+
+  controller(e: KeyboardEvent): void {
+    if (e.key === 'r') {
+      this.restart();
+    } else if (
+      e.key.startsWith('Arrow') &&
+      this.dir !== e.key.substring(5).toLowerCase()
+    ) {
+      this.dir = e.key.substring(5).toLowerCase();
+    }
+  }
+
+  restart(): void {
+    clearInterval(this.game);
+    this.snake = [
+      { x: (this.width - this.box) / 2, y: (this.height - this.box) / 2 },
+    ];
+    this.ms = 120;
+    this.dir = 'none';
+    this.score = 0;
+    this.game = setInterval(this.loop.bind(this), this.ms);
+  }
+
+  loop(): void {
+    this.clearCanvas();
+    this.showScore();
+    this.spawnApple();
+
+    let [px, py] = [this.snake[0].x, this.snake[0].y];
+    let [ax, ay] = [this.food.x, this.food.y];
+
+    if (this.dir === 'left') px -= this.box;
+    else if (this.dir === 'up') py -= this.box;
+    else if (this.dir === 'right') px += this.box;
+    else if (this.dir === 'down') py += this.box;
+
+    if (px >= this.width) px = 0;
+    if (px < 0) px = this.width;
+    if (py >= this.height) py = 0;
+    if (py < 0) py = this.height;
+
+    if (px === ax && py === ay) {
+      this.score += 10;
+
+      if (this.score <= 250) {
+        this.ms = Math.round(this.ms * 0.95);
+      }
+
+      this.updateAppleCoordinates();
+      clearInterval(this.game);
+      this.game = setInterval(this.loop.bind(this), this.ms);
     } else {
-      ctx.fillStyle = 'red';
-      ctx.fillRect(food.x, food.y, box, box);
-    }
-  }
-};
-
-// Function to show the score
-const showScore = (): void => {
-  if (ctx) {
-    ctx.fillStyle = 'white';
-    ctx.font = `${box}px ${font}`;
-    ctx.fillText(`Score: ${score}`, box - 4, box);
-    ctx.fillText(`Record: ${record}`, width - box * 6.25, box);
-  }
-};
-
-// Function to show Game Over screen
-const showGameOver = (): void => {
-  clearCanvas();
-  showScore();
-  if (ctx) {
-    ctx.fillText('Press r to restart', box * 5.5, height / 2 + box * 1.5);
-    ctx.font = `bold ${box * 3}px ${font}`;
-    ctx.fillText('Game Over!', box * 2.25, height / 2);
-  }
-};
-
-// Function to stop the game
-const stopGame = (): void => {
-  clearInterval(game);
-  setTimeout(showGameOver, 500);
-};
-
-// Main game loop
-const loop = (): void => {
-  clearCanvas();
-  showScore();
-  spawnApple();
-
-  // Setting the snake position
-  let [px, py] = [snake[0].x, snake[0].y];
-  let [ax, ay] = [food.x, food.y];
-
-  if (dir === 'left') px -= box;
-  else if (dir === 'up') py -= box;
-  else if (dir === 'right') px += box;
-  else if (dir === 'down') py += box;
-
-  // Boundaries
-  if (px >= width) px = 0;
-  if (px < 0) px = width;
-  if (py >= height) py = 0;
-  if (py < 0) py = height;
-
-  if (px === ax && py === ay) {
-    score += 10;
-
-    // Increase difficulty by 5% for each apple eaten (up to a maximum of 250 score)
-    if (score <= 250) {
-      ms = Math.round(ms * 0.95);
+      this.snake.pop();
     }
 
-    updateAppleCoordinates();
-    clearInterval(game);
-    game = setInterval(loop, ms);
-  } else {
-    snake.pop();
-  }
-
-  if (snake.some((elem) => px === elem.x && py === elem.y)) {
-    stopGame();
-  } else {
-    snake.unshift({ x: px, y: py });
-  }
-
-  // Draw the snake
-  snake.forEach((elem, index) => {
-    if (ctx) {
-      ctx.fillStyle = index === 0 ? 'blue' : 'cyan';
-      ctx.fillRect(elem.x, elem.y, box, box);
+    if (this.snake.some((elem) => px === elem.x && py === elem.y)) {
+      this.stopGame();
+    } else {
+      this.snake.unshift({ x: px, y: py });
     }
-  });
-};
 
-// Start the game loop
-let game = setInterval(loop, ms);
-document.addEventListener('keydown', controller);
+    this.snake.forEach((elem, index) => {
+      if (this.ctx) {
+        this.ctx.fillStyle = index === 0 ? 'blue' : 'cyan';
+        this.ctx.fillRect(elem.x, elem.y, this.box, this.box);
+      }
+    });
+  }
+}
+
+new SnakeGame();
