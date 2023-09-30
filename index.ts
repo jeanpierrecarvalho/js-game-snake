@@ -15,6 +15,11 @@ const initialPoint = {
 
 const snake = [initialPoint];
 
+const food = {
+  x: Math.floor(Math.random() * 20 + 1) * box,
+  y: Math.floor(Math.random() * 20 + 1) * box,
+};
+
 let ms = 120;
 let dir = 'none';
 
@@ -40,11 +45,28 @@ const restart = () => {
   game = setInterval(loop, ms);
 };
 
+const updateAppleCoordinates = () => {
+  food.x = Math.floor(Math.random() * 20 + 1) * box;
+  food.y = Math.floor(Math.random() * 20 + 1) * box;
+};
+
+const spawnApple = () => {
+  if (snake.some((elem) => elem.x === food.x && elem.y === food.y)) {
+    updateAppleCoordinates();
+    spawnApple();
+  } else {
+    ctx.fillStyle = 'red';
+    ctx.fillRect(food.x, food.y, box, box);
+  }
+};
+
 const loop = () => {
   clearCanvas();
+  spawnApple();
 
   // Setting the snake position
   let [px, py] = [snake[0].x, snake[0].y];
+  let [ax, ay] = [food.x, food.y];
 
   if (dir === 'left') px -= box;
   else if (dir === 'up') py -= box;
